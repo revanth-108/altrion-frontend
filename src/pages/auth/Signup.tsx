@@ -27,6 +27,7 @@ export function Signup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Signup submitted with form data:', form);
 
     // Call the actual signup API
     signup(form);
