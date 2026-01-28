@@ -1,10 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-<<<<<<< Updated upstream
 import { useNavigate } from 'react-router-dom';
-=======
-import { useNavigate } from 'react-router-dom';
->>>>>>> Stashed changes
 import {
   TrendingUp,
   TrendingDown,
@@ -20,13 +16,8 @@ import {
   X,
 } from 'lucide-react';
 import { Button, Card, Header } from '../../components/ui';
-<<<<<<< Updated upstream
-import { mockPortfolio, mockLoanEligibility } from '../../mock/data';
-=======
-import { mockLoanEligibility, walletPlatforms } from '../../mock/data';
->>>>>>> Stashed changes
+import { mockLoanEligibility } from '../../mock/data';
 import { PLATFORM_ICONS } from '../../constants';
-import type { Asset } from '../../types';
 import { formatCurrency, formatPercent, generateChartData, normalizeChartY, normalizeChartX } from '../../utils';
 import type { ChartPeriod } from '../../utils';
 import { CONTAINER_VARIANTS, ITEM_VARIANTS, ROUTES } from '../../constants';
@@ -36,41 +27,6 @@ import { useAuthStore, selectUser } from '../../store';
 
 export function Dashboard() {
   const navigate = useNavigate();
-<<<<<<< Updated upstream
-  const [activeTab, setActiveTab] = useState<'all' | 'crypto' | 'stocks' | 'cash'>('all');
-  const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('24H');
-  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
-  const [showAccountsDropdown, setShowAccountsDropdown] = useState(false);
-  const [hoveredPoint, setHoveredPoint] = useState<{ index: number; x: number; y: number } | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowAccountsDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Aggregate assets by symbol and calculate platforms
-  const aggregatedAssets = useMemo(() => {
-    const assetMap = new Map<string, Asset & { platforms: Set<string> }>();
-
-    mockPortfolio.assets.forEach(asset => {
-      const key = asset.symbol;
-      if (assetMap.has(key)) {
-        const existing = assetMap.get(key)!;
-        existing.amount += asset.amount;
-        existing.value += asset.value;
-        existing.platforms.add(asset.platform);
-      } else {
-        assetMap.set(key, {
-          ...asset,
-          platforms: new Set([asset.platform])
-=======
   const [activeTab, setActiveTab] = useState<'all' | 'crypto' | 'stocks' | 'cash'>('all');
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('24H');
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
@@ -150,44 +106,12 @@ export function Dashboard() {
           change24h: asset.change24h,
           platforms: platforms.length > 0 ? platforms : [asset.platform],
           type: asset.type,
->>>>>>> Stashed changes
         });
       }
     });
 
     return Array.from(assetMap.values());
-<<<<<<< Updated upstream
-  }, []);
-
-  // Get connected accounts from aggregated assets
-  const connectedAccounts = useMemo(() => {
-    const platformSet = new Set<string>();
-    mockPortfolio.assets.forEach(asset => {
-      platformSet.add(asset.platform);
-    });
-
-    return Array.from(platformSet).map(platformName => {
-      const platformId = platformName.toLowerCase().replace(/\s+/g, '');
-      return {
-        id: platformId,
-        name: platformName
-      };
-    });
-  }, []);
-
-  // PLATFORM_LOGOS mapping (using PLATFORM_ICONS as base)
-  const PLATFORM_LOGOS: Record<string, string | undefined> = useMemo(() => {
-    const logos: Record<string, string | undefined> = {};
-    Object.entries(PLATFORM_ICONS).forEach(([key, value]) => {
-      if (value.logo) {
-        logos[key] = value.logo;
-      }
-    });
-    return logos;
-  }, []);
-=======
   }, [portfolioData.assets]);
->>>>>>> Stashed changes
 
   // Get selected asset
   const selectedAsset = selectedAssetId
@@ -401,18 +325,11 @@ export function Dashboard() {
                       {portfolioLoading ? '...' : formatCurrency(portfolioData.totalValue)}
                     </h2>
                     <div
-<<<<<<< Updated upstream
-                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold mb-2 ${mockPortfolio.change24h >= 0
-                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                        : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                        }`}
-=======
                       className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold mb-2 ${
                         portfolioData.change24h >= 0
                           ? 'bg-green-500/20 text-green-400 border border-green-500/30'
                           : 'bg-red-500/20 text-red-400 border border-red-500/30'
                       }`}
->>>>>>> Stashed changes
                     >
                       {portfolioData.change24h >= 0 ? (
                         <TrendingUp size={14} />

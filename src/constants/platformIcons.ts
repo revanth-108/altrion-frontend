@@ -21,6 +21,7 @@ export const PLATFORM_ICONS: Record<string, PlatformIcon> = {
   bofa: { icon: Building2, color: 'bg-red-600/20 text-red-500' },
   wells: { icon: Truck, color: 'bg-yellow-600/20 text-yellow-500' },
   citi: { icon: Landmark, color: 'bg-blue-500/20 text-blue-400' },
+  plaid: { logo: '/plaid.svg', color: 'bg-indigo-500/20' },
 
   // Brokerages
   robinhood: { logo: '/robinhood.svg', color: 'bg-green-500/20' },

@@ -9,6 +9,7 @@ import { platformService } from '../../services';
 import { usePlatforms } from '../../hooks/queries/usePlatforms';
 import EthereumProvider from '@walletconnect/ethereum-provider';
 import { useQueryClient } from '@tanstack/react-query';
+import { usePlaidLink } from 'react-plaid-link';
 
 // Confetti component for celebration moment (peak-end rule)
 const Confetti = () => (
@@ -54,6 +55,10 @@ export function ConnectAPI() {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [walletConnecting, setWalletConnecting] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
+  const [walletUri, setWalletUri] = useState<string | null>(null);
+  const [connectedAddress, setConnectedAddress] = useState<string | null>(null);
+  const [plaidToken, setPlaidToken] = useState<string | null>(null);
+  const [plaidError, setPlaidError] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { data: platformGroups } = usePlatforms();
   const platforms = platformGroups || { crypto: [], banks: [], brokers: [] };
@@ -107,6 +112,8 @@ export function ConnectAPI() {
 
     setWalletConnecting(true);
     setWalletError(null);
+    setWalletUri(null);
+    setConnectedAddress(null);
 
     try {
       const provider = await EthereumProvider.init({
@@ -116,6 +123,16 @@ export function ConnectAPI() {
         showQrModal: true,
         methods: ['eth_requestAccounts', 'eth_chainId'],
         events: ['accountsChanged', 'chainChanged'],
+        metadata: {
+          name: 'Altrion',
+          description: 'Altrion wallet connection',
+          url: window.location.origin,
+          icons: [],
+        },
+      });
+
+      provider.on('display_uri', (uri: string) => {
+        setWalletUri(uri);
       });
 
       await provider.connect();
@@ -130,6 +147,8 @@ export function ConnectAPI() {
         setWalletError('No wallet address returned from WalletConnect.');
         return;
       }
+
+      setConnectedAddress(address);
 
       const connectionIndex = connections.findIndex(c => c.platformId === selectedPlatformId);
       if (connectionIndex === -1) {
@@ -146,6 +165,41 @@ export function ConnectAPI() {
     }
   };
 
+  const selectedPlatform = allPlatforms.find(p => p.id === selectedPlatformId);
+  const isWallet = selectedPlatformId === 'wallet';
+  const isPlaid = selectedPlatformId === 'plaid';
+
+  useEffect(() => {
+    const fetchPlaidToken = async () => {
+      if (!isPlaid) return;
+      try {
+        setPlaidError(null);
+        const token = await platformService.getPlaidLinkToken();
+        setPlaidToken(token);
+      } catch (error) {
+        console.error('Failed to get Plaid link token', error);
+        setPlaidError('Failed to initialize Plaid. Please try again.');
+      }
+    };
+    fetchPlaidToken();
+  }, [isPlaid]);
+
+  const { open: openPlaid, ready: plaidReady } = usePlaidLink({
+    token: plaidToken || '',
+    onSuccess: async (public_token) => {
+      try {
+        const result = await platformService.connectWithCredentials('plaid', { public_token });
+        if (result.status !== 'success') {
+          setPlaidError(result.message || 'Plaid connection failed.');
+        }
+      } catch (error) {
+        console.error('Plaid connect failed', error);
+        setPlaidError('Plaid connection failed.');
+      }
+    },
+    onExit: () => {},
+  });
+
   const handleConnectAccount = () => {
     // Only connect if credentials are provided
     const platformCredentials = buildCredentials();
@@ -156,9 +210,6 @@ export function ConnectAPI() {
       }
     }
   };
-
-  const selectedPlatform = allPlatforms.find(p => p.id === selectedPlatformId);
-  const isWallet = selectedPlatformId === 'wallet';
 
   // Check if all connections are either success or error (completed)
   const allConnectionsCompleted = connections.length > 0 &&
@@ -314,7 +365,7 @@ export function ConnectAPI() {
                       <div>
                         <h3 className="font-display text-2xl font-bold text-text-primary">{selectedPlatform.name}</h3>
                         <p className="text-text-secondary text-sm">
-                          {isWallet ? 'Connect using WalletConnect' : 'Enter your credentials'}
+                          {isWallet ? 'Connect using WalletConnect' : isPlaid ? 'Connect your bank via Plaid' : 'Enter your credentials'}
                         </p>
                       </div>
                     </div>
@@ -330,7 +381,7 @@ export function ConnectAPI() {
                     </div>
 
                     {/* Login Form */}
-                    {!isWallet && (
+                    {!isWallet && !isPlaid && (
                       <div className="space-y-4 mb-6">
                         <div>
                           <label className="block text-sm font-medium text-text-primary mb-2">
@@ -384,8 +435,8 @@ export function ConnectAPI() {
                         <div className="flex-1">
                           <Button
                             size="lg"
-                            onClick={isWallet ? connectWallet : handleConnectAccount}
-                            disabled={isWallet ? walletConnecting : (!credentials.username || !credentials.password)}
+                            onClick={isWallet ? connectWallet : isPlaid ? openPlaid : handleConnectAccount}
+                            disabled={isWallet ? walletConnecting : isPlaid ? !plaidReady : (!credentials.username || !credentials.password)}
                           >
                             {isWallet ? (
                               walletConnecting ? (
@@ -396,6 +447,8 @@ export function ConnectAPI() {
                               ) : (
                                 'Connect Wallet'
                               )
+                            ) : isPlaid ? (
+                              'Connect Bank'
                             ) : (
                               (() => {
                                 const conn = connections.find(c => c.platformId === selectedPlatform.id);
@@ -412,7 +465,7 @@ export function ConnectAPI() {
                             )}
                           </Button>
                         </div>
-                        {!isWallet && (() => {
+                        {!isWallet && !isPlaid && (() => {
                           const conn = connections.find(c => c.platformId === selectedPlatform.id);
                           return conn?.status === 'error' ? (
                             <Button
@@ -426,6 +479,31 @@ export function ConnectAPI() {
                       </div>
                       {walletError && (
                         <p className="text-sm text-red-400">{walletError}</p>
+                      )}
+                      {plaidError && (
+                        <p className="text-sm text-red-400">{plaidError}</p>
+                      )}
+                      {connectedAddress && (
+                        <div className="text-xs text-text-muted">
+                          Connected wallet: <span className="text-text-primary">{connectedAddress}</span>
+                        </div>
+                      )}
+                      {walletUri && (
+                        <div className="text-xs text-text-muted">
+                          If your wallet scanner says “no usable data”, open your wallet app’s
+                          WalletConnect scanner and scan the QR (do not use the phone camera).
+                          <div className="mt-2">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => {
+                                window.location.href = walletUri;
+                              }}
+                            >
+                              Open in Wallet
+                            </Button>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </Card>

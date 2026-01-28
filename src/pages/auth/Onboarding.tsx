@@ -5,9 +5,6 @@ import { ArrowRight } from 'lucide-react';
 import { Button, Card, Logo } from '../../components/ui';
 import { authService } from '../../services';
 import { useAuthStore } from '../../store';
-
-
-
 const steps = [
   {
     id: 1,
@@ -17,18 +14,8 @@ const steps = [
 ];
 
 export function Onboarding() {
-<<<<<<< Updated upstream
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    displayName: '',
-  });
-
-  const handleNext = () => {
-    navigate('/connect/select');
-  };
-=======
-  const navigate = useNavigate();
-  const { setUser, completeOnboarding } = useAuthStore();
+  const { setUser, completeOnboarding, setJustSignedUp } = useAuthStore();
   const [showCelebration, setShowCelebration] = useState(false);
   const [form, setForm] = useState({
     displayName: '',
@@ -46,6 +33,7 @@ export function Onboarding() {
       });
       localStorage.setItem('altrion-displayName', nickname);
       completeOnboarding();
+      setJustSignedUp(false);
     } catch (error) {
       console.error('Failed to update nickname', error);
       return;
@@ -57,7 +45,6 @@ export function Onboarding() {
       navigate('/connect/select');
     }, 3000); // Show celebration for 3 seconds
   };
->>>>>>> Stashed changes
 
   const canProceed = () => {
     return form.displayName.length >= 2;

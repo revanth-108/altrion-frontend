@@ -39,6 +39,7 @@ export const platformService = {
       }));
 
       const walletPlatforms = platforms.filter((platform) => platform.id === 'wallet');
+      const bankPlatforms = platforms.filter((platform) => platform.id === 'plaid');
       const fallbackWallet: Platform = {
         id: 'wallet',
         name: 'Wallet',
@@ -49,7 +50,7 @@ export const platformService = {
       const cryptoPlatforms = walletPlatforms.length > 0 ? walletPlatforms : [fallbackWallet];
       return {
         crypto: cryptoPlatforms,
-        banks: [],
+        banks: bankPlatforms,
         brokers: [],
       };
     } catch (error) {
@@ -63,7 +64,14 @@ export const platformService = {
             category: 'crypto',
           },
         ],
-        banks: [],
+        banks: [
+          {
+            id: 'plaid',
+            name: 'Plaid',
+            icon: '/plaid.svg',
+            category: 'bank',
+          },
+        ],
         brokers: [],
       };
     }
@@ -95,6 +103,11 @@ export const platformService = {
         message: 'Failed to connect. Please check your credentials.',
       };
     }
+  },
+
+  async getPlaidLinkToken(): Promise<string> {
+    const { data } = await api.post<{ success: boolean; link_token: string }>('/plaid/link-token');
+    return data.link_token;
   },
 
   /**

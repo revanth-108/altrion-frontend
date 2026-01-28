@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -9,14 +8,6 @@ import { AuthLayout } from '../../components/layout/AuthLayout';
 import { Button, Input } from '../../components/ui';
 import { usePasswordToggle, useSignup } from '../../hooks';
 import { useToast } from '../../components/ui';
-=======
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { Mail, Lock, User, Eye, EyeOff, Check, Shield, Users, Zap } from 'lucide-react';
-import { AuthLayout } from '../../components/layout/AuthLayout';
-import { Button, Input } from '../../components/ui';
-import { useForm, usePasswordToggle, useSignup } from '../../hooks';
->>>>>>> Stashed changes
 import { getPasswordRequirements } from '../../utils';
 import { ROUTES } from '../../constants';
 import { signupSchema, type SignupFormData } from '../../schemas';
@@ -24,7 +15,6 @@ import { useAuthStore, selectError } from '../../store';
 
 export function Signup() {
   const { showPassword, togglePassword, inputType } = usePasswordToggle();
-<<<<<<< Updated upstream
   const { success, error: showError } = useToast();
   const authError = useAuthStore(selectError);
   const clearError = useAuthStore((state) => state.clearError);
@@ -44,21 +34,11 @@ export function Signup() {
       password: '',
       confirmPassword: '',
     },
-=======
-  // Keep the full mutation object to avoid type mismatches when destructuring
-  const signupMutation = useSignup();
-  const { values: form, updateValue } = useForm<SignupFormData>({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
->>>>>>> Stashed changes
   });
 
   const password = watch('password', '');
   const confirmPassword = watch('confirmPassword', '');
 
-<<<<<<< Updated upstream
   const passwordRequirements = getPasswordRequirements(password, confirmPassword);
 
   // Show auth errors as toast
@@ -75,17 +55,6 @@ export function Signup() {
       success('Welcome!', 'Your account has been created successfully.');
     } catch {
       // Error is handled by mutation and toast
-=======
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // call the signup mutation and wait for completion (hook handles navigation on success)
-    try {
-      await signupMutation.mutateAsync(form);
-    } catch (err) {
-      // mutation's onError already handles store error; optionally log here
-      console.error('Signup failed', err);
->>>>>>> Stashed changes
     }
   };
 
@@ -276,13 +245,8 @@ export function Signup() {
             type="submit"
             fullWidth
             size="lg"
-<<<<<<< Updated upstream
             loading={isSubmitting || signupMutation.isPending}
             disabled={!passwordRequirements.every(r => r.met) || isSubmitting || signupMutation.isPending}
-=======
-            loading={signupMutation.isLoading}
-            disabled={!passwordRequirements.every(r => r.met)}
->>>>>>> Stashed changes
           >
             Create Account
           </Button>
